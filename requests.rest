@@ -1,0 +1,12 @@
+POST http://localhost:8000/profile
+
+Content-Type: application/json
+
+{
+    "username": "keval"
+}
+
+###
+
+GET http://localhost:8000/profile/data
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MjU2NTY3ODd9.bhZL-8m58fZz2GNsSeBXdsu-aGYmZDGdWLtbI1kr-fE

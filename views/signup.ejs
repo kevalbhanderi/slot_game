@@ -1,0 +1,37 @@
+<%- include ("base") -%>
+    <title>SignUp</title>
+
+    <div class="contaner pt-5">
+        <div class="col-lg-5 mx-auto">
+            <div class="alert alert-dark">
+                <h2>Create Account</h2>
+            </div>
+
+            <% if(locals.error_msg) { %>
+                <div class="alert alert-warning" role="alert">
+                    <%= error_msg %>
+                </div>
+                <% } %>
+
+                    <% if(locals.err) { %>
+                        <div class="alert alert-danger" role="alert">
+                            <%= err %>
+                        </div>
+                        <% } %>
+
+                            <div class="p-4">
+                                <form action="" method="POST">
+                                    <label for="username">Username : </label>
+                                    <input type="text" name="username" id="username"><br><br>
+
+                                    <label for="email">Email Id: </label>&#8287 &#8287 &#8287
+                                    <input type="email" name="email" id="email"><br><br>
+
+                                    <label for="password">Password : </label>&#8287
+                                    <input type="password" name="password" id="password"><br><br>
+
+                                    <input type="submit" value="Register" class="btn btn-success">
+                                </form>
+                            </div>
+        </div>
+    </div>
