@@ -88,10 +88,7 @@ class SlotGame {
 
 
     collectWin = (wallet, winInSpin, betAmount) => {
-        console.log('win');
-        console.log(wallet, winInSpin, betAmount);
         wallet = wallet + winInSpin - betAmount;
-        
         return wallet;
     }
 

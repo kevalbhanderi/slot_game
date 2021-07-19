@@ -216,7 +216,7 @@ class getViewZone {
         if (freeSpin > 0) {
             winFreeSpinAmount = this.creditWinAmount(multipliar, betAmount, winFreeSpinAmount);
         }
-        return { symbol, wintype: `${count}ofakind`, payLine, winAmount: betAmount * multipliar, winFreeSpinAmount }
+        return { symbol, wintype: `${count}ofakind`, payLine, winAmount: betAmount + multipliar, winFreeSpinAmount }
     }
 
 
@@ -247,7 +247,7 @@ class getViewZone {
     }
 
     creditWinAmount = (multipliar, betAmount, winFreeSpinAmount) => {
-        winFreeSpinAmount += betAmount * multipliar;
+        winFreeSpinAmount += betAmount + multipliar;
         return winFreeSpinAmount;
     }
 

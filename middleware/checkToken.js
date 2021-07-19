@@ -13,7 +13,6 @@ exports.verifyAccessToken = (req, res, next) => {
             console.log('error');
             return next(createError(401, 'User is not logged in'))
         }
-        console.log('out error');
         req.token = token
         next();
     })

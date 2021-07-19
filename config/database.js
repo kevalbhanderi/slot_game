@@ -35,7 +35,6 @@ exports.currentwallet = async (req, res) => {
     const sql = "SELECT * FROM userdata WHERE username = '" + name + "'";
     
     const result = await client.query(sql);
-    console.log(result);
     return result;
 }
 
