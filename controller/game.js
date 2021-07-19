@@ -118,9 +118,9 @@ class SlotGame {
 
 
     gambleData = (req, res) => {
-        const winChance = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0];
+        const winChance = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0]; // Winchance is 60%-40%
         if(winChance[Math.floor(Math.random() * winChance.length)]){
-            res.send({'addValue': +req.body.winAmount * 2});
+            res.send({'addValue': +req.body.winAmount * 2}); 
         } else {
             res.send({'addValue': 0});
         }
