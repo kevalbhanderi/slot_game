@@ -1,8 +1,8 @@
 let express = require('express');
 let router = express.Router();
-const controller = require('../controller/User');
-const { slotGame } = require('../controller/game');
-const profile = require('../controller/userProfile');
+const controller = require('../controller/userController');
+const { slotGame } = require('../controller/gameController');
+const profile = require('../controller/userProfileController');
 const checkToken = require('../middleware/checkToken');
 
 

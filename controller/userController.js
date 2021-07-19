@@ -1,6 +1,6 @@
 const dotenv = require('dotenv');
 const { client } = require("../config/database");
-const { connect, use } = require("../routes/User");
+const { connect, use } = require("../routes/userRoute");
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 
