@@ -4,7 +4,6 @@ const controller = require('../controller/User');
 const { slotGame } = require('../controller/game');
 const profile = require('../controller/userProfile');
 const checkToken = require('../middleware/checkToken');
-const { viewZone } = require('../utils/preViewZone');
 
 
 
@@ -28,7 +27,7 @@ router.get('/profile/data', checkToken.verifyAccessToken, profile.userData);
 router.post('/spin', checkToken.verifyAccessToken, slotGame.gameFunction);
 
 // Collect
-router.post('/collect', checkToken.verifyAccessToken, slotGame.collect);
+// router.post('/collect', checkToken.verifyAccessToken, slotGame.collectWin);
 
 
 module.exports = router;

@@ -13,7 +13,7 @@ module.exports.gameVariable = {
         },
         "H2": {
             "3ofakind": 40,
-            "4ofakind": 100,
+            "4ofakind": 130,
             "5ofakind": 250
         },
         "H3": {

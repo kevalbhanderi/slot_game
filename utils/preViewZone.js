@@ -102,20 +102,9 @@ class getViewZone {
             reel4: [],
         };
 
-        let wildMultipliar = 0;
-        let wildMultipliarArray = [];
         const expandingWild = [];
         const newGenerateArray = [];
         for (let reel = 0; reel < generateViewZone.generatedArray.length; reel++) {
-            for (let col = 0; col < generateViewZone.generatedArray[reel].length; col++) {
-                let check = generateViewZone.generatedArray[reel][col];
-                if (check === 'WILD') {
-                    let random = this.randomWildMul(wildMultiArray);
-                    wildMultipliar += random;
-                    let wildResponse = this.wildMult(reel, col, random);
-                    wildMultipliarArray.push(wildResponse);
-                }
-            }
 
             const celement = generateViewZone.generatedArray[reel];
             const element = JSON.parse(JSON.stringify(celement));
@@ -138,7 +127,7 @@ class getViewZone {
                 newGenerateArray.push(element);
             }
         }
-        return { viewZone, generatedArray: newGenerateArray, expandingWild, wildMultipliar, wildMultipliarArray }
+        return { viewZone, generatedArray: newGenerateArray, expandingWild}
     }
 
 
@@ -157,15 +146,15 @@ class getViewZone {
     }
 
 
-    checkPayline = (payArray, matrixReel, pay) => {
+    checkPayline = async (payArray, matrixReel, pay, req, res) => {
         let scatterCount = 0;
         let result = [];
-        let wallet = userHelper.gameFunction()['wallet'];
-        let betAmount = userHelper.gameFunction()['betAmount'];
+        let wallet = (await userHelper.gameData(req, res)).wallet;
+        let betAmount = (await userHelper.gameData(req, res)).betAmount;
         let winAmount = 0;
-        let winFreeSpinAmount = userHelper.gameFunction()['winFreeSpinAmount'];
-        let freeSpin = userHelper.gameFunction()['freeSpin'];
-        let totalFreeSPin = userHelper.gameFunction()['totalFreeSpin'];
+        let winFreeSpinAmount = (await userHelper.gameData(req, res)).winFreeSpinAmount;
+        let freeSpin = (await userHelper.gameData(req, res)).freeSpin;
+        let totalFreeSPin = (await userHelper.gameData(req, res)).totalFreeSPin;
         for (let rowOfMatrix = 0; rowOfMatrix < matrixReel.length; rowOfMatrix++) {
             for (let rowOfPayArray = 0; rowOfPayArray < payArray.length; rowOfPayArray++) {
                 let payLine = payArray[rowOfPayArray];
@@ -205,7 +194,6 @@ class getViewZone {
         let symbol = matrixReel[rowOfMatrix][x];
         if (payLine[0] === rowOfMatrix) {
             count++;
-            
             for (let element = 1; element < payLine.length; element++) {
                 if (symbol == 'WILD') {
                     symbol = matrixReel[payLine[element]][element];
@@ -218,37 +206,26 @@ class getViewZone {
                 count++;
             }
         }
-        // console.log(count, symbol);
         return { count, symbol };
     }
 
 
 
-
     buildPayLine = (count, symbol, pay, payLine, betAmount, freeSpin, winFreeSpinAmount) => {
         let multipliar = pay[`${symbol}`][`${count}ofakind`];
-        // console.log(pay[`${symbol}`]);
         if (freeSpin > 0) {
             winFreeSpinAmount = this.creditWinAmount(multipliar, betAmount, winFreeSpinAmount);
         }
         return { symbol, wintype: `${count}ofakind`, payLine, winAmount: betAmount * multipliar, winFreeSpinAmount }
     }
 
-    wildMult = (reel, row, random) => {
-        let wildMultipliar = {
-            row: row,
-            column: reel,
-            multipliar: random
-        }
-        return wildMultipliar;
-    }
 
     countOfFreeSpin = (freeSpin, totalFreeSpin) => {
         if (freeSpin > 0) {
-            totalFreeSpin += 10;
-            freeSpin += 10;
+            totalFreeSpin += 1;
+            freeSpin += 1;
         } else {
-            freeSpin = 20;
+            freeSpin = 2;
             totalFreeSpin = freeSpin;
         }
         return { freeSpin, totalFreeSpin }
@@ -273,21 +250,6 @@ class getViewZone {
         winFreeSpinAmount += betAmount * multipliar;
         return winFreeSpinAmount;
     }
-
-    randomWildMul(wildMult) {
-        const element = Math.floor(Math.random() * wildMult.length);
-        return wildMult[element];
-    }
-
-
-
-    collectWin = (result) => {
-        let wallet = userHelper.gameFunction(req, res)['wallet'];
-        let winInSpin = userHelper.gameFunction(req, res)['winInSpin'];
-        
-        wallet = 
-    }
-
 
 }
 

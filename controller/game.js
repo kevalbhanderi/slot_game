@@ -1,36 +1,42 @@
 const userHelper = require('../utils/userHelper')
 const { preViewZone } = require('../utils/preViewZone');
 const { gameVariable } = require('../seeder/spin');
-
+const { currentUser, client, currentwallet } = require('../config/database');
 
 class SlotGame {
-    gameFunction = (req, res) => {
-        let wallet = userHelper.gameFunction(req, res)['wallet'];
-        let betAmount = userHelper.gameFunction(req, res)['betAmount'];
-        let freeSpin = userHelper.gameFunction(req, res)['freeSpin'];
-        let totalFreeSPin = userHelper.gameFunction(req, res)['totalFreeSpin'];
-        let winFreeSpinAmount = userHelper.gameFunction(req, res)['winFreeSpinAmount'];
-        let wildMultipliar = userHelper.gameFunction(req, res)['wildMultipliar'];
-        let winInSpin = userHelper.gameFunction(req, res)['winInSpin'];
+    gameFunction = async (req, res) => {
+
+        let wallet = (await userHelper.gameData(req, res)).wallet;
+        let betAmount = (await userHelper.gameData(req, res)).betAmount;
+        let freeSpin = (await userHelper.gameData(req, res)).freeSpin;
+        let totalFreeSPin = (await userHelper.gameData(req, res)).totalFreeSPin;
+        let winFreeSpinAmount = (await userHelper.gameData(req, res)).winFreeSpinAmount;
+        let winInSpin = (await userHelper.gameData(req, res)).winInSpin;
 
         if (winInSpin === 0) {
             // Generate ViewZone
             const generateViewZone = preViewZone.generateViewZone(gameVariable);
             const viewZone = generateViewZone.viewZone;
             const expanding_Wild = preViewZone.expandingWildCard(generateViewZone, gameVariable.wildMult);
-            wildMultipliar = expanding_Wild.wildMultipliar;
 
             let matrixReel = preViewZone.matrix(expanding_Wild, gameVariable.viewZone.rows, gameVariable.viewZone.columns);
-            let checkPayline = preViewZone.checkPayline(gameVariable.payArray, matrixReel, gameVariable.payTable);
+            let checkPayline = await preViewZone.checkPayline(gameVariable.payArray, matrixReel, gameVariable.payTable, req, res);
+
             winFreeSpinAmount = checkPayline.winFreeSpinAmount;
             wallet = checkPayline.wallet;
             winInSpin = checkPayline.winAmount;
+            
             let checkFreeSpin = checkPayline.freeSpin;
+
             if (freeSpin !== 0) {
                 freeSpin--;
                 checkFreeSpin--;
             } else {
-                wallet = preViewZone.debitWinAmount(checkPayline.wallet, betAmount);
+                if (wallet < betAmount) {
+                    res.send('You are Bankrrupt');
+                    return;
+                }
+                // wallet = preViewZone.debitWinAmount(checkPayline.wallet, betAmount);
                 winFreeSpinAmount = 0;
             }
 
@@ -47,64 +53,46 @@ class SlotGame {
                 responseFreeSpin = preViewZone.freeSpin(freeSpin, checkPayline.winFreeSpinAmount, totalFreeSPin);
             }
             let result = checkPayline.result;
+
+            (await userHelper.gameData(req, res)).wallet = wallet;
+            (await userHelper.gameData(req, res)).betAmount = betAmount;
+            (await userHelper.gameData(req, res)).freeSpin = freeSpin;
+            (await userHelper.gameData(req, res)).totalFreeSPin = totalFreeSPin;
+            (await userHelper.gameData(req, res)).winFreeSpinAmount = winFreeSpinAmount;
+            (await userHelper.gameData(req, res)).winInSpin = winInSpin;
             
 
-            userHelper.gameFunction(req, res)['wallet'] = wallet;
-            userHelper.gameFunction(req, res)['betAmount'] = betAmount;
-            userHelper.gameFunction(req, res)['freeSpin'] = freeSpin;
-            userHelper.gameFunction(req, res)['winFreeSpinAmount'] = winFreeSpinAmount;
-            userHelper.gameFunction(req, res)['totalFreeSpin'] = totalFreeSPin;
-            userHelper.gameFunction(req, res)['winInSpin'] = winInSpin;
-            userHelper.gameFunction(req, res)['wildMultipliar'] = wildMultipliar;
-
-            let data = {
-                viewZone: viewZone,
-                result: result,
-                betAmount: betAmount,
-                wallet: wallet,
-                freeSpin: checkPayline.freeSpin > 0 ? responseFreeSpin : 0,
-                wildCard: expanding_Wild.expandingWild,
-                totalWin: checkPayline.winAmount,
-                wildMultipliar: expanding_Wild.wildMultipliar
+            const user = currentUser(req, res);
+            const query = "update userdata set user_wallet = " + this.collectWin(wallet, winInSpin, betAmount) + " where username = '" + user + "'";
+            const walletResult = await client.query(query);
+            if (walletResult) {
+                let data = {
+                    viewZone: viewZone,
+                    result: result,
+                    betAmount: betAmount,
+                    wallet: (await currentwallet(req, res)).rows[0].user_wallet,
+                    freeSpin: checkPayline.freeSpin > 0 ? responseFreeSpin : 0,
+                    wildCard: expanding_Wild.expandingWild,
+                    totalWin: checkPayline.winAmount,
+                }
+                res.send(data);
+                // return message;
+            } else {
+                res.send('Error wallet')
             }
-            let message = ('Success', data);
-            res.send(message);
-            // return message;
         } else {
             let message = 'Error';
-            // res.send(message);
             return message;
         }
     }
-    
 
-    collect = (req, res) => {
-        (result) => {
-            let wallet = userHelper.gameFunction(req, res)['wallet'];
-            let winInSpin = userHelper.gameFunction(req, res)['winInSpin'];
-            let wildMultipliar = userHelper.gameFunction(req, res)['wildMultipliar'];
 
-            if (winInSpin !== 0) {
-                let collectWallet = preViewZone.collectWallet(result);
-                wallet = collectWallet.wallet;
-                winInSpin = collectWallet.winInSpin;
-                wildMultipliar = collectWallet.wildMultipliar;
-
-                userHelper.gameFunction(req, res)['wildMultipliar'] = wildMultipliar;
-                userHelper.gameFunction(req, res)['winInSpin'] = winInSpin;
-                userHelper.gameFunction(req, res)['wallet'] = wallet;
-
-                let data = {
-                    wallet: wallet,
-                }
-                let response = ("Success", data);
-                console.log(data);
-                // return response;
-            } else {
-                let message = "Collect Money";
-                return message;
-            }
-        }
+    collectWin = (wallet, winInSpin, betAmount) => {
+        console.log('win');
+        console.log(wallet, winInSpin, betAmount);
+        wallet = wallet + winInSpin - betAmount;
+        
+        return wallet;
     }
 
 }

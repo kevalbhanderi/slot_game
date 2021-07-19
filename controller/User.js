@@ -1,8 +1,8 @@
 const dotenv = require('dotenv');
-const client = require("../config/database");
+const { client } = require("../config/database");
 const { connect, use } = require("../routes/User");
 const jwt = require('jsonwebtoken');
-const { v4: uuidv4} = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 
 
 // get config vars
@@ -80,16 +80,15 @@ exports.loginData = function (req, res) {
                         throw err
                     }
                 })
-                res.redirect('/');
-                console.log(accesToken);
+                res.send(accesToken);
             } else {
                 err = 'Invalid Username or Password';
-                return res.render('login', { err: err });
+                res.send(err);
             }
         })
     } else {
         error_msg = "Please Enter Username or Password";
-        return res.render('login', { error_msg: error_msg });
+        res.send(error_msg);
     }
 }
 
@@ -99,10 +98,9 @@ exports.loginData = function (req, res) {
 // Logout
 exports.logout = function (req, res) {
     username = req.session.username;
-    console.log(username);
     let token = req.headers['authorization'].split(' ')[1];
     if (token) {
-        console.log(token);
+        delete req.headers['authorization'];
         client.query(`DELETE FROM userauth WHERE user_token='${token}'`, (err, data) => {
             if (err) {
                 throw err;
@@ -111,7 +109,7 @@ exports.logout = function (req, res) {
     }
     res.clearCookie('username');
     req.session.destroy();
-    
+
     // res.send('Logout Success Token Deleted')
     res.redirect('/login');
 }
