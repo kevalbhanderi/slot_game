@@ -25,7 +25,7 @@ class SlotGame {
             winFreeSpinAmount = checkPayline.winFreeSpinAmount;
             wallet = checkPayline.wallet;
             winInSpin = checkPayline.winAmount;
-            
+
             let checkFreeSpin = checkPayline.freeSpin;
 
             if (freeSpin !== 0) {
@@ -36,7 +36,7 @@ class SlotGame {
                     res.send('You are Bankrrupt');
                     return;
                 }
-                // wallet = preViewZone.debitWinAmount(checkPayline.wallet, betAmount);
+                wallet = preViewZone.debitWinAmount(checkPayline.wallet, betAmount);
                 winFreeSpinAmount = 0;
             }
 
@@ -60,26 +60,23 @@ class SlotGame {
             (await userHelper.gameData(req, res)).totalFreeSPin = totalFreeSPin;
             (await userHelper.gameData(req, res)).winFreeSpinAmount = winFreeSpinAmount;
             (await userHelper.gameData(req, res)).winInSpin = winInSpin;
-            
 
-            const user = currentUser(req, res);
-            const query = "update userdata set user_wallet = " + this.collectWin(wallet, winInSpin, betAmount) + " where username = '" + user + "'";
-            const walletResult = await client.query(query);
-            if (walletResult) {
-                let data = {
-                    viewZone: viewZone,
-                    result: result,
-                    betAmount: betAmount,
-                    wallet: (await currentwallet(req, res)).rows[0].user_wallet,
-                    freeSpin: checkPayline.freeSpin > 0 ? responseFreeSpin : 0,
-                    wildCard: expanding_Wild.expandingWild,
-                    totalWin: checkPayline.winAmount,
-                }
-                res.send(data);
-                // return message;
-            } else {
-                res.send('Error wallet')
+
+            // const user = currentUser(req, res);
+            // const query = "update userdata set user_wallet = " + wallet + " where username = '" + user + "'";
+            // const walletResult = await client.query(query);
+
+            let data = {
+                viewZone: viewZone,
+                result: result,
+                betAmount: betAmount,
+                wallet: (await currentwallet(req, res)).rows[0].user_wallet,
+                freeSpin: checkPayline.freeSpin > 0 ? responseFreeSpin : 0,
+                wildCard: expanding_Wild.expandingWild,
+                totalWin: checkPayline.winAmount,
             }
+            res.send(data);
+
         } else {
             let message = 'Error';
             return message;
@@ -87,10 +84,50 @@ class SlotGame {
     }
 
 
-    collectWin = (wallet, winInSpin, betAmount) => {
-        wallet = wallet + winInSpin - betAmount;
-        return wallet;
+
+
+
+    collectWin = async (req, res) => {
+        let betAmount = 0
+        if (req.body.mode == 'collect') {
+            betAmount = 0;
+        } else {
+            betAmount = (await userHelper.gameData(req, res)).betAmount;
+        }
+        const databaseWallet = (await userHelper.gameData(req, res)).wallet;
+        const winAmount = req.body.winAmount;
+        try {
+            const wallet = databaseWallet + winAmount - betAmount;
+            const user = currentUser(req, res);
+            const query = "update userdata set user_wallet = " + wallet + " where username = '" + user + "'";
+            const walletResult = await client.query(query);
+            
+            if (walletResult) {
+                res.send({wallet: wallet.toString()});
+            } else {
+                res.send('Something Went Wrong');
+            }
+        } catch (e) {
+            throw e;
+        }
+
+
     }
+
+
+
+
+    gambleData = (req, res) => {
+        const winChance = [1, 1, 1, 1, 0, 0, 0, 0, 0, 0];
+        if(winChance[Math.floor(Math.random() * winChance.length)]){
+            res.send({'addValue': +req.body.winAmount * 2});
+        } else {
+            res.send({'addValue': 0});
+        }
+    }
+
+
+
 
 }
 

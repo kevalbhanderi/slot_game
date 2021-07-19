@@ -27,7 +27,10 @@ router.get('/profile/data', checkToken.verifyAccessToken, profile.userData);
 router.post('/spin', checkToken.verifyAccessToken, slotGame.gameFunction);
 
 // Collect
-// router.post('/collect', checkToken.verifyAccessToken, slotGame.collectWin);
+router.post('/collect', checkToken.verifyAccessToken, slotGame.collectWin);
+
+// Gamble
+router.post('/gamble', slotGame.gambleData)
 
 
 module.exports = router;
