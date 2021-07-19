@@ -50,5 +50,4 @@ module.exports.gameVariable = {
         ['H3', 'K', 'J', 'H1', 'H2', "WILD", 'A', 'SCATTER', 'H3']
     ],
     maxWInAmount: 110000,
-    wildMult: [2, 4, 6],
 }
