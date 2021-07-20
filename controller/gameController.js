@@ -30,7 +30,7 @@ class SlotGame {
 
             if (freeSpin !== 0) {
                 freeSpin--;
-                checkFreeSpin--;
+                totalFreeSPin--;
             } else {
                 if (wallet < betAmount) {
                     res.send('You are Bankrrupt');
@@ -41,10 +41,14 @@ class SlotGame {
             }
 
             if (checkPayline.scatterCount > 2) {
-                let countOfFreeSpin = preViewZone.countOfFreeSpin(freeSpin, totalFreeSPin);
+                let countOfFreeSpin = await preViewZone.countOfFreeSpin(freeSpin, totalFreeSPin);
                 freeSpin = countOfFreeSpin.freeSpin;
                 totalFreeSPin = countOfFreeSpin.totalFreeSpin;
             }
+
+            const sqlquery = "update userdata set freespin = '" + freeSpin + "', totalfreespin = '" + totalFreeSPin + "' where username = 'jay'";
+            const freeSpinData = await client.query(sqlquery);
+            console.log(freeSpinData, freeSpin);
 
             let responseFreeSpin = {}
             if (freeSpin === 0) {
@@ -54,32 +58,31 @@ class SlotGame {
             }
             let result = checkPayline.result;
 
+
             (await userHelper.gameData(req, res)).wallet = wallet;
-            (await userHelper.gameData(req, res)).betAmount = betAmount;
-            (await userHelper.gameData(req, res)).freeSpin = freeSpin;
-            (await userHelper.gameData(req, res)).totalFreeSPin = totalFreeSPin;
-            (await userHelper.gameData(req, res)).winFreeSpinAmount = winFreeSpinAmount;
-            (await userHelper.gameData(req, res)).winInSpin = winInSpin;
+            // (await userHelper.gameData(req, res)).betAmount = betAmount;
+            // (await userHelper.gameData(req, res)).freeSpin = freeSpin;
+            // (await userHelper.gameData(req, res)).totalFreeSPin = totalFreeSPin;
+            // (await userHelper.gameData(req, res)).winFreeSpinAmount = winFreeSpinAmount;
+            // (await userHelper.gameData(req, res)).winInSpin = winInSpin;
 
 
-            // const user = currentUser(req, res);
-            // const query = "update userdata set user_wallet = " + wallet + " where username = '" + user + "'";
-            // const walletResult = await client.query(query);
+
+            const user = currentUser(req, res);
+            const query = "update userdata set user_wallet = " + wallet + " where username = '" + user + "'";
+            const walletResult = await client.query(query);
 
             let data = {
                 viewZone: viewZone,
                 result: result,
                 betAmount: betAmount,
                 wallet: (await currentwallet(req, res)).rows[0].user_wallet,
-                freeSpin: checkPayline.freeSpin > 0 ? responseFreeSpin : 0,
+                freeSpin: freeSpin > 0 ? responseFreeSpin : 0,
                 wildCard: expanding_Wild.expandingWild,
                 totalWin: checkPayline.winAmount,
             }
             res.send(data);
 
-        } else {
-            let message = 'Error';
-            return message;
         }
     }
 
@@ -101,9 +104,9 @@ class SlotGame {
             const user = currentUser(req, res);
             const query = "update userdata set user_wallet = " + wallet + " where username = '" + user + "'";
             const walletResult = await client.query(query);
-            
+
             if (walletResult) {
-                res.send({wallet: wallet.toString()});
+                res.send({ wallet: wallet.toString() });
             } else {
                 res.send('Something Went Wrong');
             }
@@ -119,10 +122,10 @@ class SlotGame {
 
     gambleData = (req, res) => {
         const winChance = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0]; // Winchance is 60%-40%
-        if(winChance[Math.floor(Math.random() * winChance.length)]){
-            res.send({'addValue': +req.body.winAmount * 2}); 
+        if (winChance[Math.floor(Math.random() * winChance.length)]) {
+            res.send({ 'addValue': +req.body.winAmount * 2 });
         } else {
-            res.send({'addValue': 0});
+            res.send({ 'addValue': 0 });
         }
     }
 

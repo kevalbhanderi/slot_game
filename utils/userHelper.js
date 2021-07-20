@@ -13,10 +13,9 @@ module.exports.gameData = async (req, res) => {
             const account = {
                 wallet: +result.rows[0].user_wallet,
                 betAmount: 100,
-                freeSpin: 0,
-                totalFreeSPin: 0,
+                freeSpin: +result.rows[0].freespin,
+                totalFreeSPin: +result.rows[0].totalfreespin,
                 winFreeSpinAmount: 0,
-                wildMultipliar: 0,
                 winInSpin: 0
             }
             return account
@@ -27,7 +26,6 @@ module.exports.gameData = async (req, res) => {
             freeSpin: 0,
             totalFreeSPin: 0,
             winFreeSpinAmount: 0,
-            wildMultipliar: 0,
             winInSpin: 0
         }
     } catch (e) {

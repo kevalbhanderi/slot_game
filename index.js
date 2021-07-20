@@ -1,10 +1,8 @@
 const express = require('express');
 const { render } = require('ejs');
-const bodyParser = require('body-parser');
 const client = require('./config/database');
 const session = require('express-session');
-const uuid = require('uuidv4');
-const userRoute = require('./routes/User');
+const userRoute = require('./routes/userRoute');
 
 const app = express();
 

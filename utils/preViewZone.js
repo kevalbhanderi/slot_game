@@ -127,7 +127,7 @@ class getViewZone {
                 newGenerateArray.push(element);
             }
         }
-        return { viewZone, generatedArray: newGenerateArray, expandingWild}
+        return { viewZone, generatedArray: newGenerateArray, expandingWild }
     }
 
 
@@ -153,10 +153,12 @@ class getViewZone {
         let betAmount = (await userHelper.gameData(req, res)).betAmount;
         let winAmount = 0;
         let winFreeSpinAmount = (await userHelper.gameData(req, res)).winFreeSpinAmount;
-        let freeSpin = (await userHelper.gameData(req, res)).freeSpin;
+        let freeSpin = (await userHelper.gameData(req, res)).freeSpin; 
         let totalFreeSPin = (await userHelper.gameData(req, res)).totalFreeSPin;
+        
         for (let rowOfMatrix = 0; rowOfMatrix < matrixReel.length; rowOfMatrix++) {
             for (let rowOfPayArray = 0; rowOfPayArray < payArray.length; rowOfPayArray++) {
+
                 let payLine = payArray[rowOfPayArray];
                 if (payLine) {
                     let countOfSym = this.countOfSymbol(matrixReel, payLine, rowOfMatrix);
@@ -174,6 +176,7 @@ class getViewZone {
                 }
                 let check = matrixReel[rowOfMatrix][rowOfPayArray];
                 if (check === 'SCATTER') {
+                    
                     scatterCount++;
                 }
             }
@@ -183,6 +186,7 @@ class getViewZone {
             freeSpin = countOfFreeSpin.freeSpin;
             totalFreeSPin = countOfFreeSpin.totalFreeSpin;
         }
+        
         return { scatterCount, result, wallet, winFreeSpinAmount, freeSpin, totalFreeSPin, winAmount }
     }
 
@@ -228,6 +232,7 @@ class getViewZone {
             freeSpin = 2;
             totalFreeSpin = freeSpin;
         }
+        console.log(freeSpin, totalFreeSpin);
         return { freeSpin, totalFreeSpin }
     }
 
@@ -235,7 +240,7 @@ class getViewZone {
         let scatterOfFreeSpin = {
             numberOfFreeSpin: totalFreeSPin,
             remainingSpin: freeSpin,
-            freeSpinTriggered: freeSpin === totalFreeSPin ? 'true' : 'false',
+            freeSpinTriggered: freeSpin === totalFreeSPin,
             winAmount: winFreeSpinAmount
         }
         return scatterOfFreeSpin;
