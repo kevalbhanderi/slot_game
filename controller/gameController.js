@@ -1,7 +1,7 @@
 const userHelper = require('../utils/userHelper')
 const { preViewZone } = require('../utils/preViewZone');
 const { gameVariable } = require('../seeder/spin');
-const { currentUser, client, currentwallet } = require('../config/database');
+const { currentUser, client, currentwallet, gameId } = require('../config/database');
 
 class SlotGame {
     gameFunction = async (req, res) => {
@@ -15,12 +15,14 @@ class SlotGame {
 
         if (winInSpin === 0) {
             // Generate ViewZone
-            const generateViewZone = preViewZone.generateViewZone(gameVariable);
+            const generateViewZone = preViewZone.generateViewZone((await gameVariable()));
             const viewZone = generateViewZone.viewZone;
-            const expanding_Wild = preViewZone.expandingWildCard(generateViewZone, gameVariable.wildMult);
+            const expanding_Wild = preViewZone.expandingWildCard(generateViewZone);
 
-            let matrixReel = preViewZone.matrix(expanding_Wild, gameVariable.viewZone.rows, gameVariable.viewZone.columns);
-            let checkPayline = await preViewZone.checkPayline(gameVariable.payArray, matrixReel, gameVariable.payTable, req, res);
+            let matrixReel = preViewZone.matrix(expanding_Wild, (await gameVariable()).viewZone.rows, (await gameVariable()).viewZone.columns);
+
+            // checkpayline in matrix
+            let checkPayline = await preViewZone.checkPayline((await gameVariable()).payArray, matrixReel, (await gameVariable()).payTable, req, res);
 
             winFreeSpinAmount = checkPayline.winFreeSpinAmount;
             wallet = checkPayline.wallet;
@@ -28,6 +30,7 @@ class SlotGame {
 
             let checkFreeSpin = checkPayline.freeSpin;
 
+            // Count of freespin f occures
             if (freeSpin !== 0) {
                 freeSpin--;
                 totalFreeSPin--;
@@ -40,15 +43,15 @@ class SlotGame {
                 winFreeSpinAmount = 0;
             }
 
+            // When freeSpin Occures
             if (checkPayline.scatterCount > 2) {
                 let countOfFreeSpin = await preViewZone.countOfFreeSpin(freeSpin, totalFreeSPin);
                 freeSpin = countOfFreeSpin.freeSpin;
                 totalFreeSPin = countOfFreeSpin.totalFreeSpin;
             }
 
-            const sqlquery = "update userdata set freespin = '" + freeSpin + "', totalfreespin = '" + totalFreeSPin + "' where username = 'jay'";
+            const sqlquery = "update userdata set freespin = '" + freeSpin + "', totalfreespin = '" + totalFreeSPin + "' where username = '" + currentUser(req, res) + "'";
             const freeSpinData = await client.query(sqlquery);
-            console.log(freeSpinData, freeSpin);
 
             let responseFreeSpin = {}
             if (freeSpin === 0) {
@@ -60,14 +63,8 @@ class SlotGame {
 
 
             (await userHelper.gameData(req, res)).wallet = wallet;
-            // (await userHelper.gameData(req, res)).betAmount = betAmount;
-            // (await userHelper.gameData(req, res)).freeSpin = freeSpin;
-            // (await userHelper.gameData(req, res)).totalFreeSPin = totalFreeSPin;
-            // (await userHelper.gameData(req, res)).winFreeSpinAmount = winFreeSpinAmount;
-            // (await userHelper.gameData(req, res)).winInSpin = winInSpin;
-
-
-
+            
+            
             const user = currentUser(req, res);
             const query = "update userdata set user_wallet = " + wallet + " where username = '" + user + "'";
             const walletResult = await client.query(query);

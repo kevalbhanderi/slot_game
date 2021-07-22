@@ -1,4 +1,4 @@
-const { client, currentUser } = require("../config/database");
+const { client, currentUser, gameId } = require("../config/database");
 // const currentUser = require("../config/database");
 
 require('dotenv').config();
@@ -12,7 +12,7 @@ module.exports.gameData = async (req, res) => {
         if (result) {
             const account = {
                 wallet: +result.rows[0].user_wallet,
-                betAmount: 100,
+                betAmount: +(await gameId()).betamount,
                 freeSpin: +result.rows[0].freespin,
                 totalFreeSPin: +result.rows[0].totalfreespin,
                 winFreeSpinAmount: 0,

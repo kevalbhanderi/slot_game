@@ -1,3 +1,4 @@
+const { loginData } = require('../controller/userController');
 const userHelper = require('./userHelper')
 class getViewZone {
 
@@ -27,7 +28,11 @@ class getViewZone {
     }
 
 
-
+    /**
+     * 
+     * @param {static} sta static data
+     * @returns viewZone And Matrix
+     */
     generateViewZone = (sta) => {
         const arrayOfReel = sta.arrayOfReels;
         const row = sta.viewZone.rows;
@@ -69,7 +74,14 @@ class getViewZone {
     }
 
 
-
+    /**
+     * 
+     * @param {arrayOfReel} arrayOfReel array of reel  
+     * @param {length} length length of arrayofreel
+     * @param {reel} reel count of reel
+     * @param {row} row row of viewZone
+     * @returns 
+     */
     countOfWild(arrayOfReel, length, reel, row) {
         const randomNumber = [];
         for (let index = 0; index < 5; index++) {
@@ -92,8 +104,12 @@ class getViewZone {
     }
 
 
-
-    expandingWildCard = (generateViewZone, wildMultiArray) => {
+    /**
+     * 
+     * @param {generateViewZone} generateViewZone 
+     * @returns viewZone, generatedArray, expandingWild
+     */
+    expandingWildCard = (generateViewZone) => {
         const viewZone = {
             reel0: [],
             reel1: [],
@@ -131,7 +147,13 @@ class getViewZone {
     }
 
 
-
+    /**
+     * 
+     * @param {generateViewZone} generateViewZone 
+     * @param {row} row row of matrix
+     * @param {column} column column of matrix
+     * @returns matrix reel
+     */
     matrix = (generateViewZone, row, column) => {
         let matrixReel = [];
         for (let matrixCol = 0; matrixCol < row; matrixCol++) {
@@ -146,16 +168,25 @@ class getViewZone {
     }
 
 
+
+    /**
+     * 
+     * @param {payArray} payArray Array of payline
+     * @param {matrixReel} matrixReel matrix of reel
+     * @param {pay} pay paytable
+     * @returns 
+     */
     checkPayline = async (payArray, matrixReel, pay, req, res) => {
+
         let scatterCount = 0;
         let result = [];
         let wallet = (await userHelper.gameData(req, res)).wallet;
         let betAmount = (await userHelper.gameData(req, res)).betAmount;
         let winAmount = 0;
         let winFreeSpinAmount = (await userHelper.gameData(req, res)).winFreeSpinAmount;
-        let freeSpin = (await userHelper.gameData(req, res)).freeSpin; 
+        let freeSpin = (await userHelper.gameData(req, res)).freeSpin;
         let totalFreeSPin = (await userHelper.gameData(req, res)).totalFreeSPin;
-        
+
         for (let rowOfMatrix = 0; rowOfMatrix < matrixReel.length; rowOfMatrix++) {
             for (let rowOfPayArray = 0; rowOfPayArray < payArray.length; rowOfPayArray++) {
 
@@ -164,10 +195,12 @@ class getViewZone {
                     let countOfSym = this.countOfSymbol(matrixReel, payLine, rowOfMatrix);
                     let count = countOfSym.count;
                     let symbol = countOfSym.symbol;
+
                     if (count > 2) {
                         if (symbol === 'WILD') {
                             break;
                         }
+
                         let symbolOfResult = this.buildPayLine(count, symbol, pay, payLine, betAmount, freeSpin, winFreeSpinAmount);
                         result.push({ symbol: symbolOfResult.symbol, wintype: symbolOfResult.wintype, payLine: symbolOfResult.payLine, winAmount: symbolOfResult.winAmount });
                         winAmount += symbolOfResult.winAmount;
@@ -176,7 +209,7 @@ class getViewZone {
                 }
                 let check = matrixReel[rowOfMatrix][rowOfPayArray];
                 if (check === 'SCATTER') {
-                    
+
                     scatterCount++;
                 }
             }
@@ -186,12 +219,20 @@ class getViewZone {
             freeSpin = countOfFreeSpin.freeSpin;
             totalFreeSPin = countOfFreeSpin.totalFreeSpin;
         }
-        
+
         return { scatterCount, result, wallet, winFreeSpinAmount, freeSpin, totalFreeSPin, winAmount }
     }
 
 
 
+
+    /**
+     * 
+     * @param {matrixReel} matrixReel matrix of reel
+     * @param {payLine} payLine payarray of payline
+     * @param {rowOfMatrix} rowOfMatrix row of matrix reel
+     * @returns count and symbol
+     */
     countOfSymbol = (matrixReel, payLine, rowOfMatrix) => {
         let count = 0;
         let x = 0;
@@ -215,8 +256,19 @@ class getViewZone {
 
 
 
+    /**
+     * 
+     * @param {count} count count of symbol
+     * @param {symbol} symbol symbol
+     * @param {pay} pay paytable
+     * @param {payLine} payLine payarray of payline
+     * @param {betAmount} betAmount 
+     * @param {freeSpin} freeSpin 
+     * @param {winFreeSpinAmount} winFreeSpinAmount 
+     * @returns {symbol, wintype, payline, winAmount, winFreeSpinAmount}
+     */
     buildPayLine = (count, symbol, pay, payLine, betAmount, freeSpin, winFreeSpinAmount) => {
-        let multipliar = pay[`${symbol}`][`${count}ofakind`];
+        let multipliar = pay[symbol][`${count}ofakind`];
         if (freeSpin > 0) {
             winFreeSpinAmount = this.creditWinAmount(multipliar, betAmount, winFreeSpinAmount);
         }
@@ -224,6 +276,13 @@ class getViewZone {
     }
 
 
+
+    /**
+     * 
+     * @param {freeSpin} freeSpin 
+     * @param {totalFreeSpin} totalFreeSpin 
+     * @returns freeSpin, totalFreeSpin
+     */
     countOfFreeSpin = (freeSpin, totalFreeSpin) => {
         if (freeSpin > 0) {
             totalFreeSpin += 1;
@@ -232,10 +291,18 @@ class getViewZone {
             freeSpin = 2;
             totalFreeSpin = freeSpin;
         }
-        console.log(freeSpin, totalFreeSpin);
+
         return { freeSpin, totalFreeSpin }
     }
 
+
+    /**
+     * 
+     * @param {*} freeSpin 
+     * @param {*} winFreeSpinAmount 
+     * @param {*} totalFreeSPin 
+     * @returns freeSpin Details : numberOfFreeSpin, remainingSpin
+     */
     freeSpin = (freeSpin, winFreeSpinAmount, totalFreeSPin) => {
         let scatterOfFreeSpin = {
             numberOfFreeSpin: totalFreeSPin,
@@ -246,19 +313,32 @@ class getViewZone {
         return scatterOfFreeSpin;
     }
 
+
+    /**
+     * 
+     * @param {wallet} wallet 
+     * @param {betAmount} betAmount 
+     * @returns wallet
+     */
     debitWinAmount = (wallet, betAmount) => {
         wallet -= betAmount;
         return wallet;
     }
 
+
+    /**
+     * 
+     * @param {multipliar} multipliar 
+     * @param {betAmount} betAmount 
+     * @param {winFreeSpinAmount} winFreeSpinAmount 
+     * @returns total winAmount in freeSpin
+     */
     creditWinAmount = (multipliar, betAmount, winFreeSpinAmount) => {
         winFreeSpinAmount += betAmount + multipliar;
         return winFreeSpinAmount;
     }
 
 }
-
-
 
 
 

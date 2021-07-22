@@ -1,6 +1,5 @@
 const dotenv = require('dotenv');
-const { client } = require("../config/database");
-const { connect, use } = require("../routes/userRoute");
+const { client, currentUser } = require("../config/database");
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 
@@ -8,17 +7,6 @@ const { v4: uuidv4 } = require('uuid');
 // get config vars
 dotenv.config();
 
-// Home Page
-exports.homePage = (req, res) => {
-    res.render('home');
-};
-
-
-
-// Signup Page
-exports.signupPage = (req, res) => {
-    res.render('signup');
-};
 
 // Signup Data
 exports.signupData = function (req, res) {
@@ -34,33 +22,27 @@ exports.signupData = function (req, res) {
 
             if ((data.rows).length != 0) {
                 err = 'Username is Already Exist';
-                return res.render('signup', { err: err });
+                res.send(err);
             } else {
                 let sql = `INSERT INTO userdata (user_id, username, email, password, user_wallet) VALUES ('${uuidv4()}', '${username}', '${email}', '${password}', '${user_wallet}')`;
                 client.query(sql, function (err) {
                     if (err) {
                         throw err
                     }
-                    res.redirect('/login');
+                    res.send('Registration Success');
                 });
             }
         });
     } else {
-        error_msg = 'Please Fill the Details';
-        return res.render('signup', { error_msg: error_msg });
+        res.send('Please Fill the Details');
     }
 }
 
 
 
-// Login Page
-exports.loginPage = (req, res) => {
-    res.render('login');
-};
-
 // Login Data
 function generateAccessToken(user) {
-    return jwt.sign(user, process.env.ACCESS_SECRET_KEY);
+    return jwt.sign(user, process.env.ACCESS_SECRET_KEY, {expiresIn: '24h'});
 }
 
 exports.loginData = function (req, res) {
@@ -97,7 +79,7 @@ exports.loginData = function (req, res) {
 
 // Logout
 exports.logout = function (req, res) {
-    username = req.session.username;
+    username = currentUser(req, res);
     let token = req.headers['authorization'].split(' ')[1];
     if (token) {
         delete req.headers['authorization'];
@@ -109,7 +91,5 @@ exports.logout = function (req, res) {
     }
     res.clearCookie('username');
     req.session.destroy();
-
-    // res.send('Logout Success Token Deleted')
-    res.redirect('/login');
+    res.send('logout success');
 }
