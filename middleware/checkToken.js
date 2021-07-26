@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const HttpException = require('http-exception')
+// const HttpException = require('http-exception')
 
 exports.verifyAccessToken = (req, res, next) => {
     if (!req.headers['authorization']) return next(createError(401, 'Please login to access this feature'))
@@ -10,7 +10,6 @@ exports.verifyAccessToken = (req, res, next) => {
     jwt.verify(token, process.env.ACCESS_SECRET_KEY, (err, token) => {
         
         if (err) {
-            console.log('error');
             res.send('PLEASE LOGIN AGAIN');
         }
         req.token = token

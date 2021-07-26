@@ -2,7 +2,6 @@ const { Pool, Client } = require('pg');
 const jwt = require('jsonwebtoken');
 // const connectionString = 'postgresql://postgres:1234@localhost:5432/slot_game';
 
-
 const client = new Client({
     host: '127.0.0.1',
     port: 5432,
@@ -22,14 +21,12 @@ client.query('SELECT * FROM userdata', (err, result) => {
 
 
 exports.currentUser = (req, res) => {
-    // console.log(req.headers);
     const token = (req.headers.authorization).replace('Bearer ', '')
     const { name, iat } = jwt.verify(token, process.env.ACCESS_SECRET_KEY);
     return name;
 }
 
 exports.currentwallet = async (req, res) => {
-    // console.log(req.headers);
     const token = (req.headers.authorization).replace('Bearer ', '')
     const { name, iat } = jwt.verify(token, process.env.ACCESS_SECRET_KEY);
     const sql = "SELECT * FROM userdata WHERE username = '" + name + "'";
@@ -50,7 +47,4 @@ exports.gameId = async () => {
     return gameId_data.rows[0];
 }
 
-
-
-// module.exports = client
 exports.client = client;

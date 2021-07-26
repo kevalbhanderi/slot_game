@@ -2,6 +2,7 @@ const dotenv = require('dotenv');
 const { client, currentUser } = require("../config/database");
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
+const { messages } = require('../utils/resMessage');
 
 
 // get config vars
@@ -21,20 +22,20 @@ exports.signupData = function (req, res) {
         client.query(databaseUser, function (err, data) {
 
             if ((data.rows).length != 0) {
-                err = 'Username is Already Exist';
+                err = {messages: messages.UserExists};
                 res.send(err);
             } else {
                 let sql = `INSERT INTO userdata (user_id, username, email, password, user_wallet) VALUES ('${uuidv4()}', '${username}', '${email}', '${password}', '${user_wallet}')`;
-                client.query(sql, function (err) {
+                client.query(sql, (err) => {
                     if (err) {
                         throw err
                     }
-                    res.send('Registration Success');
+                    res.send({messages: messages.Signup});
                 });
             }
         });
     } else {
-        res.send('Please Fill the Details');
+        res.send({messages: messages.EmptySignupData});
     }
 }
 
@@ -64,13 +65,11 @@ exports.loginData = function (req, res) {
                 })
                 res.send(accesToken);
             } else {
-                err = 'Invalid Username or Password';
-                res.send(err);
+                res.send({messages: messages.InvalidLoginData});
             }
         })
     } else {
-        error_msg = "Please Enter Username or Password";
-        res.send(error_msg);
+        res.send({messages: messages.EmptyLoginData});
     }
 }
 
@@ -91,5 +90,5 @@ exports.logout = function (req, res) {
     }
     res.clearCookie('username');
     req.session.destroy();
-    res.send('logout success');
+    res.send({messages: messages.LogOut});
 }
